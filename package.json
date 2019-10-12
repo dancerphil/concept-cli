@@ -10,13 +10,20 @@
     "lib"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "concept": "concept"
   },
   "repository": "https://github.com/dancerphil/concept-cli.git",
   "author": "Cong Zhang <dancerphil1994@gmail.com>",
   "license": "MIT",
+  "dependencies": {
+    "concept-cli": "file:.",
+    "glob": "^7.1.4",
+    "lodash": "^4.17.15"
+  },
   "devDependencies": {
-    "ts-node": "^8.4.1",
+    "@types/glob": "^7.1.1",
+    "@types/lodash": "^4.14.144",
     "typescript": "^3.6.4"
   }
 }
