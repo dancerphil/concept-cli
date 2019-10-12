@@ -11,17 +11,20 @@
   ],
   "scripts": {
     "build": "tsc",
-    "concept": "concept"
+    "concept": "concept",
+    "process": "yarn build && yarn add file:. && yarn concept"
   },
   "repository": "https://github.com/dancerphil/concept-cli.git",
   "author": "Cong Zhang <dancerphil1994@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "concept-cli": "file:.",
+    "fs-extra": "^8.1.0",
     "glob": "^7.1.4",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
+    "@types/fs-extra": "^8.0.0",
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.144",
     "typescript": "^3.6.4"

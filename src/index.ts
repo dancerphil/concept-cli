@@ -2,17 +2,24 @@
 
 import {sync} from 'glob';
 import collectConcept from './collectConcept';
+import getConceptOrder from './getConceptOrder';
 import injectLink from './injectLink';
 import injectUsage from './injectUsage';
 
 const run = () => {
-    const fileNames = sync('docs/**/*.md', {nodir: true});
-    const fileNameOfConcept = collectConcept(fileNames);
+    const files = sync('docs/**/*.md', {nodir: true});
+    const fileOfConcept = collectConcept(files);
 
-    console.log('收集到以下概念', Object.keys(fileNameOfConcept));
+    const conceptOrder = getConceptOrder(fileOfConcept);
+    console.log('concept collected: ', conceptOrder);
 
-    const usageListOfFileName = injectLink(fileNames, fileNameOfConcept)
-    injectUsage(usageListOfFileName)
+    // 可以在 injectLink 的时候 not self，也可以在 injectUsage 的时候 not self，现在选择了后者
+    const usageListOfFile = injectLink(files, fileOfConcept, conceptOrder)
+
+    console.log('usage collected: ', usageListOfFile);
+
+    // 可以在 injectLink 的时候 not self，也可以在 injectUsage 的时候 not self，现在选择了后者
+    injectUsage(usageListOfFile)
 }
 
 run();

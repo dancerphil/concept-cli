@@ -1,19 +1,14 @@
-import {readFileSync} from 'fs';
+import {readFileSync} from 'fs-extra';
 import warnIf from './warnIf';
-import {FileName, FileNameOfConcept} from './types';
+import {File, FileOfConcept} from './types';
 
 // 单次运行，使用一个全生命周期闭包
-const fileNameOfConcept: FileNameOfConcept = {};
+const fileOfConcept: FileOfConcept = {};
 
-const collectConceptOfFile = (fileName: FileName) => {
-    const lines = readFileSync(fileName, 'utf-8').split('\n');
+const collectConceptOfFile = (file: File) => {
+    const lines = readFileSync(file, 'utf-8').split('\n');
     lines.forEach((line) => {
-        const isTitle = line.startsWith('# ')
-        warnIf(
-            line.startsWith('#') && !isTitle,
-            'h1 should startsWith a space after #'
-        )
-        if (!isTitle) {
+        if (!line.startsWith('# ')) {
             return;
         }
 
@@ -21,17 +16,18 @@ const collectConceptOfFile = (fileName: FileName) => {
             line.includes('|') && !line.includes(' | '),
             'separator | should have spaces between'
         );
+
         const conceptNames = line.slice(2).split(' | ');
         conceptNames.forEach(conceptName => {
-            fileNameOfConcept[conceptName] = fileName
+            fileOfConcept[conceptName] = file
         })
     })
 }
 
-const collectConcept = (fileNames: FileName[]) => {
-    fileNames.forEach(collectConceptOfFile)
+const collectConcept = (files: File[]) => {
+    files.forEach(collectConceptOfFile)
 
-    return fileNameOfConcept;
+    return fileOfConcept;
 }
 
 export default collectConcept
