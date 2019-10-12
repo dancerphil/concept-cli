@@ -1,0 +1,22 @@
+{
+  "name": "concept-cli",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "bin": {
+    "concept": "lib/index.js"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": "https://github.com/dancerphil/concept-cli.git",
+  "author": "Cong Zhang <dancerphil1994@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
+  }
+}
