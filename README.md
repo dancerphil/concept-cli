@@ -1,23 +1,17 @@
 # concept-cli
 
-概念图谱
+在现有的文档上生成概念图谱。
 
-## 预想的使用方式
+## GetStarted
 
-开发者需要维护一个普通的 md 文件系统，比如 docs
+```bash
+yarn add concept-cli -g
+```
 
-1. 可以从 docs 渲染出一个 md 文件系统，比如 view
+```bash
+concept
+// or
+concept --sourceDir docs --targetDir .docs
+```
 
-    ```bash
-    concept make
-    ```
-    
-    make 产出内联的 link 和脚注 usage
-    
-    如果概念冲突会 failed
-
-2. 概念的属性
-
-    一个概念可以 `# A | B`，所有的相关文档会被 link
-    
-    一个概念所在文件夹即是其索引，可以任意层级
+`concept` 会读取当前目录下的 `docs` 文件夹，并在 `.docs` 生成一套携带了概念图谱的新文档

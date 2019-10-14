@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 import {sync} from 'glob';
+import program from './program';
 import collectConcept from './collectConcept';
 import injectLink from './injectLink';
 import injectUsage from './injectUsage';
 
-const sourceDir = 'docs';
-
-const targetDir = '.docs';
+const {sourceDir, targetDir} = program;
 
 const getFile = (sourceFile: string) => {
     return {

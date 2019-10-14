@@ -1,6 +1,9 @@
+type Source = string;
+type Target = string;
+
 export interface File {
-    source: string;
-    target: string;
+    source: Source;
+    target: Target;
 }
 export type ConceptName = string;
 
@@ -9,5 +12,5 @@ export interface FileOfConcept {
 }
 
 export interface UsageListOfFileTarget {
-    [key: string]: string[]
+    [key: string]: Target[]
 }
