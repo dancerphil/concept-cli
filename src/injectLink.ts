@@ -1,5 +1,7 @@
 import {readFileSync, writeFileSync, ensureFileSync} from 'fs-extra';
 import {uniq, fromPairs} from 'lodash';
+import {Node} from 'unist';
+import * as remark from 'remark';
 import getRelativeLink from './getRelativeLink';
 import {File, ConceptName, FileOfConcept, UsageListOfFileTarget} from './types';
 
@@ -8,58 +10,87 @@ const getConceptOrder = (fileOfConcept: FileOfConcept) => {
     conceptOrder.sort((a, b) => b.length - a.length);
     return conceptOrder;
 }
-// 识别 [...](...) 语法
-const linkRegex = /\[[^\[\]]*]\([^()]*\)/g
 
 // 单次运行，使用一个全生命周期闭包
 const usageListOfFileTarget: UsageListOfFileTarget = {}
 
-const regenerateLine = (content: string[], line: string) => {
-    let formattedLine = content[0]
-    let contentIndex = 1;
-    for (let result = linkRegex.exec(line); result !== null; result = linkRegex.exec(line)) {
-        formattedLine += result[0] + content[contentIndex];
-        contentIndex += 1;
+const pushUsage = (conceptDefinition: File['target'], target: File['target']) => {
+    if(!usageListOfFileTarget[conceptDefinition]) {
+        usageListOfFileTarget[conceptDefinition] = []
     }
-    return formattedLine;
+    usageListOfFileTarget[conceptDefinition].push(target);
 }
+
+const {parse, process, stringify} = remark()
 
 const injectLinkOfFile = (file: File, fileOfConcept: FileOfConcept, conceptOrder: ConceptName[]) => {
     const {source, target} = file
-    let outputLines = readFileSync(source, 'utf-8').split('\n');
 
-    conceptOrder.forEach((conceptName) => {
-        let hasFound = false;
-        const {target: conceptDefinition} = fileOfConcept[conceptName];
-        const linkUrl = getRelativeLink(target, conceptDefinition);
-
-        outputLines = outputLines.map((line) => {
-            if (line.startsWith('#')) {
-                return line;
+    const transformChildren = (state: Node[], node: Node) => {
+        switch (node.type) {
+            case 'heading' :
+            case 'link': {
+                state.push(node);
+                return state;
             }
-            const content = line.split(linkRegex).map(str => {
-                // 这个写法只会 replace 同一行第一个，我觉得它是个 feature 挺好的
-                const replacedStr =  str.replace(
-                    conceptName,
-                    `[${conceptName}](${linkUrl})`
-                )
-                if (replacedStr !== str) {
-                    hasFound = true;
+            case 'text': {
+                let nodeList = [node];
+
+                conceptOrder.forEach((conceptName) => {
+                    const {target: conceptDefinition} = fileOfConcept[conceptName];
+                    const linkUrl = getRelativeLink(target, conceptDefinition);
+
+                    let found = false
+                    const reducer = (state: Node[], node: Node) => {
+                        if (node.type !== 'text') {
+                            state.push(node);
+                            return state
+                        }
+
+                        const value = node.value as string;
+
+                        const index = value.indexOf(conceptName);
+                        if (index !== -1) {
+                            pushUsage(conceptDefinition, target);
+                            found = true;
+                            state.push(
+                                {type: 'text', value: value.slice(0, index)},
+                                {type: 'link', url: linkUrl, children: [{type: 'text', value: conceptName}]},
+                                {type: 'text', value: value.slice(index + conceptName.length)},
+                            )
+                        } else {
+                            state.push(node);
+                        }
+                        return state;
+                    }
+
+                    nodeList = nodeList.reduce(reducer, [])
+                });
+
+                state.push(...nodeList)
+                return state
+            }
+            default: {
+                if (Array.isArray(node.children)) {
+                    node.children = node.children.reduce(transformChildren, [])
                 }
-                return replacedStr;
-            })
-            return regenerateLine(content, line);
-        });
-
-        if (hasFound) {
-            if (!usageListOfFileTarget[conceptDefinition]) {
-                usageListOfFileTarget[conceptDefinition] = [];
+                state.push(node);
+                return state;
             }
-            usageListOfFileTarget[conceptDefinition].push(target);
         }
-    });
-    ensureFileSync(target);
-    writeFileSync(target, outputLines.join('\n'), 'utf-8');
+    }
+
+    process(readFileSync(source, 'utf-8'), (error, vfile) => {
+        const node = parse(vfile);
+
+        if (Array.isArray(node.children)) {
+            node.children = node.children.reduce(transformChildren, [])
+        }
+        const output = stringify(node)
+
+        ensureFileSync(target);
+        writeFileSync(target, output, 'utf-8');
+    })
 }
 
 const injectLink = (files: File[], fileOfConcept: FileOfConcept) => {
