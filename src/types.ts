@@ -8,6 +8,6 @@ export interface FileOfConcept {
     [key: string]: File
 }
 
-export interface UsageListOfFile {
-    [key: string]: File[]
+export interface UsageListOfFileTarget {
+    [key: string]: string[]
 }

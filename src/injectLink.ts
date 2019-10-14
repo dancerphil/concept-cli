@@ -1,13 +1,18 @@
-import {relative} from 'path';
 import {readFileSync, writeFileSync, ensureFileSync} from 'fs-extra';
-import {File, ConceptName, FileOfConcept, UsageListOfFile} from './types';
-import getConceptOrder from './getConceptOrder';
+import {uniq, fromPairs} from 'lodash';
+import getRelativeLink from './getRelativeLink';
+import {File, ConceptName, FileOfConcept, UsageListOfFileTarget} from './types';
 
+const getConceptOrder = (fileOfConcept: FileOfConcept) => {
+    const conceptOrder = Object.keys(fileOfConcept);
+    conceptOrder.sort((a, b) => b.length - a.length);
+    return conceptOrder;
+}
 // 识别 [...](...) 语法
 const linkRegex = /\[[^\[\]]*]\([^()]*\)/g
 
 // 单次运行，使用一个全生命周期闭包
-const usageListOfFile: UsageListOfFile = {}
+const usageListOfFileTarget: UsageListOfFileTarget = {}
 
 const regenerateLine = (content: string[], line: string) => {
     let formattedLine = content[0]
@@ -26,8 +31,7 @@ const injectLinkOfFile = (file: File, fileOfConcept: FileOfConcept, conceptOrder
     conceptOrder.forEach((conceptName) => {
         let hasFound = false;
         const {target: conceptDefinition} = fileOfConcept[conceptName];
-        const targetFileDir = target.split('/').slice(0, -1).join('/');
-        const linkUrl = relative(targetFileDir, conceptDefinition);
+        const linkUrl = getRelativeLink(target, conceptDefinition);
 
         outputLines = outputLines.map((line) => {
             if (line.startsWith('#')) {
@@ -48,10 +52,10 @@ const injectLinkOfFile = (file: File, fileOfConcept: FileOfConcept, conceptOrder
         });
 
         if (hasFound) {
-            if (!usageListOfFile[conceptDefinition]) {
-                usageListOfFile[conceptDefinition] = [];
+            if (!usageListOfFileTarget[conceptDefinition]) {
+                usageListOfFileTarget[conceptDefinition] = [];
             }
-            usageListOfFile[conceptDefinition].push(file);
+            usageListOfFileTarget[conceptDefinition].push(target);
         }
     });
     ensureFileSync(target);
@@ -65,7 +69,14 @@ const injectLink = (files: File[], fileOfConcept: FileOfConcept) => {
         injectLinkOfFile(file, fileOfConcept, conceptOrder)
     })
 
-    return usageListOfFile
+    return fromPairs(
+        Object.entries(usageListOfFileTarget)
+            .map(([key, usageList]) => {
+                const filteredUsageList = uniq(usageList.filter(item => item !== key))
+                return [key, filteredUsageList];
+            })
+            .filter(([key, usageList]) => usageList.length > 0)
+    );
 }
 
 export default injectLink

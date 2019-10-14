@@ -59,7 +59,6 @@ concat-map@0.0.1:
 "concept-cli@file:.":
   version "1.0.0"
   dependencies:
-    concept-cli "file:../../Library/Caches/Yarn/v4/npm-concept-cli-1.0.0-e0bb59c4-dfb5-4955-8f52-b1b66913dd74-1570869550554/node_modules/concept-cli"
     fs-extra "^8.1.0"
     glob "^7.1.4"
     lodash "^4.17.15"
@@ -67,7 +66,6 @@ concat-map@0.0.1:
 "concept-cli@file:./.":
   version "1.0.0"
   dependencies:
-    concept-cli "file:../../Library/Caches/Yarn/v4/npm-concept-cli-1.0.0-5dc4ebed-1ff4-45ed-a0e8-64c2ca7aad98-1570869550541/node_modules/concept-cli"
     fs-extra "^8.1.0"
     glob "^7.1.4"
     lodash "^4.17.15"
