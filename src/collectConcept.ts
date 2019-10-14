@@ -6,7 +6,8 @@ import {File, FileOfConcept} from './types';
 const fileOfConcept: FileOfConcept = {};
 
 const collectConceptOfFile = (file: File) => {
-    const lines = readFileSync(file, 'utf-8').split('\n');
+    const {source} = file;
+    const lines = readFileSync(source, 'utf-8').split('\n');
     lines.forEach((line) => {
         if (!line.startsWith('# ')) {
             return;

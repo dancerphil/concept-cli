@@ -1,12 +1,10 @@
+import {relative} from 'path';
 import {readFileSync, writeFileSync, ensureFileSync} from 'fs-extra';
 import {File, ConceptName, FileOfConcept, UsageListOfFile} from './types';
+import getConceptOrder from './getConceptOrder';
 
 // 识别 [...](...) 语法
 const linkRegex = /\[[^\[\]]*]\([^()]*\)/g
-
-const getFile = (file: File) => {
-    return 'view' + file.slice(4);
-}
 
 // 单次运行，使用一个全生命周期闭包
 const usageListOfFile: UsageListOfFile = {}
@@ -22,11 +20,14 @@ const regenerateLine = (content: string[], line: string) => {
 }
 
 const injectLinkOfFile = (file: File, fileOfConcept: FileOfConcept, conceptOrder: ConceptName[]) => {
-    let outputLines = readFileSync(file, 'utf-8').split('\n');
+    const {source, target} = file
+    let outputLines = readFileSync(source, 'utf-8').split('\n');
+
     conceptOrder.forEach((conceptName) => {
         let hasFound = false;
-        const targetFile = fileOfConcept[conceptName];
-        const linkUrl = targetFile;
+        const {target: conceptDefinition} = fileOfConcept[conceptName];
+        const targetFileDir = target.split('/').slice(0, -1).join('/');
+        const linkUrl = relative(targetFileDir, conceptDefinition);
 
         outputLines = outputLines.map((line) => {
             if (line.startsWith('#')) {
@@ -47,18 +48,18 @@ const injectLinkOfFile = (file: File, fileOfConcept: FileOfConcept, conceptOrder
         });
 
         if (hasFound) {
-            if (!usageListOfFile[targetFile]) {
-                usageListOfFile[targetFile] = [];
+            if (!usageListOfFile[conceptDefinition]) {
+                usageListOfFile[conceptDefinition] = [];
             }
-            usageListOfFile[targetFile].push(file);
+            usageListOfFile[conceptDefinition].push(file);
         }
     });
-    const outputFile = getFile(file);
-    ensureFileSync(outputFile);
-    writeFileSync(outputFile, outputLines.join('\n'), 'utf-8');
+    ensureFileSync(target);
+    writeFileSync(target, outputLines.join('\n'), 'utf-8');
 }
 
-const injectLink = (files: File[], fileOfConcept: FileOfConcept, conceptOrder: ConceptName[]) => {
+const injectLink = (files: File[], fileOfConcept: FileOfConcept) => {
+    const conceptOrder = getConceptOrder(fileOfConcept);
 
     files.forEach((file) => {
         injectLinkOfFile(file, fileOfConcept, conceptOrder)

@@ -1,4 +1,7 @@
-export type File = string;
+export interface File {
+    source: string;
+    target: string;
+}
 export type ConceptName = string;
 
 export interface FileOfConcept {
