@@ -21,7 +21,7 @@
     "commander": "^3.0.2",
     "fs-extra": "^8.1.0",
     "glob": "^7.1.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "remark": "^11.0.1"
   },
   "devDependencies": {
